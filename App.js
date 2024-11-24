@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DashboardScreen() {
@@ -51,7 +51,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9f9f9",
     alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "ios" ? 50 : 20, // Adiciona espaço extra no topo para iOS
   },
   header: {
     width: "100%",
