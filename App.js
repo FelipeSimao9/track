@@ -6,18 +6,17 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Picker } from '@react-native-picker/picker';
-
+import { Picker } from "@react-native-picker/picker";
 
 export default function DashboardScreen() {
-  const [modalVisible, setModalVisible] = useState(false); // Controle do modal
-  const [selectedCategory, setSelectedCategory] = useState(""); // Categoria selecionada
-  const [itemName, setItemName] = useState(""); // Nome do item
-  const [price, setPrice] = useState(""); // Preço
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [itemName, setItemName] = useState("");
+  const [price, setPrice] = useState("");
 
   const categories = ["Refeições", "Lanches", "Marina", "Jogos", "Compras"];
 
@@ -45,6 +44,27 @@ export default function DashboardScreen() {
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>Dinheiro</Text>
         <Text style={styles.balanceAmount}>-R$ 172,60</Text>
+      </View>
+
+      {/* Expense Summary */}
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.category}>Refeições:</Text>
+          <Text style={styles.amount}>R$ 54,20</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.category}>Lanches:</Text>
+          <Text style={styles.amount}>R$ 14,41</Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.category}>Marina:</Text>
+          <Text style={styles.amount}>R$ 103,99</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.summaryItem}>
+          <Text style={styles.category}>Total</Text>
+          <Text style={styles.totalAmount}>R$ 172,60</Text>
+        </View>
       </View>
 
       {/* Add Button */}
@@ -128,15 +148,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9f9f9",
-    alignItems: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "ios" ? 50 : 20, // Espaço inicial consistente no topo
   },
   header: {
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
@@ -161,7 +181,45 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#d32f2f",
   },
+  summaryCard: {
+    width: "100%",
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+    marginBottom: 30,
+  },
+  summaryItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  category: {
+    fontSize: 18,
+    color: "#333",
+  },
+  amount: {
+    fontSize: 18,
+    color: "#555",
+  },
+  totalAmount: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  divider: {
+    borderBottomColor: "#ccc",
+    borderBottomWidth: 1,
+    marginVertical: 10,
+  },
   addButton: {
+    position: "absolute",
+    bottom: 100,
+    right: 160,
     width: 60,
     height: 60,
     backgroundColor: "#333",
