@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,30 +6,61 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  Platform,
   KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
+import axios from "axios"; // Importando Axios para requisições
 
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [price, setPrice] = useState("");
+  const [itemName, setItemName] = useState(""); // Nome do gasto (compra)
+  const [price, setPrice] = useState(""); // Preço
+  const [gastos, setGastos] = useState([]); // Estado para armazenar os dados do backend
 
-  const categories = ["Refeições", "Lanches", "Marina", "Jogos", "Compras"];
+  // Função para buscar os dados do backend
+  const fetchGastos = async () => {
+    try {
+      const response = await axios.get("http://192.168.1.27:3000/gastos"); // Atualize com o IP correto
+      setGastos(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar os gastos:", error);
+    }
+  };
 
-  const handleAddExpense = () => {
-    console.log("Categoria:", selectedCategory);
-    console.log("Item:", itemName);
-    console.log("Preço:", price);
+  // Buscar os dados assim que o componente for montado
+  useEffect(() => {
+    fetchGastos();
+  }, []);
 
-    // Limpa os campos após salvar
-    setSelectedCategory("");
-    setItemName("");
-    setPrice("");
-    setModalVisible(false);
+  // Função para adicionar um novo gasto
+  const handleAddExpense = async () => {
+    if (!selectedCategory || !price || !itemName) {
+      alert("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://192.168.1.27:3000/gastos", {
+        categoria: selectedCategory,
+        compra: itemName, // Inclui o campo compra
+        valor: parseFloat(price),
+      });
+
+      // Atualiza a lista de gastos após adicionar
+      setGastos((prevGastos) => [...prevGastos, response.data]);
+
+      // Limpa os campos e fecha o modal
+      setSelectedCategory("");
+      setItemName("");
+      setPrice("");
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Erro ao adicionar gasto:", error);
+      alert("Erro ao adicionar o gasto. Tente novamente.");
+    }
   };
 
   return (
@@ -42,28 +73,29 @@ export default function DashboardScreen() {
 
       {/* Balance */}
       <View style={styles.balanceContainer}>
-        <Text style={styles.balanceLabel}>Dinheiro</Text>
-        <Text style={styles.balanceAmount}>-R$ 172,60</Text>
+        <Text style={styles.balanceLabel}></Text>
+        <Text style={styles.balanceAmount}>
+          -R$ {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
+        </Text>
       </View>
 
       {/* Expense Summary */}
       <View style={styles.summaryCard}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.category}>Refeições:</Text>
-          <Text style={styles.amount}>R$ 54,20</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.category}>Lanches:</Text>
-          <Text style={styles.amount}>R$ 14,41</Text>
-        </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.category}>Marina:</Text>
-          <Text style={styles.amount}>R$ 103,99</Text>
-        </View>
+        {gastos.map((gasto, index) => (
+          <View key={index} style={styles.summaryItem}>
+            <Text style={styles.category}>{gasto.categoria}:</Text>
+            <Text style={styles.amount}>R$ {gasto.valor.toFixed(2)}</Text>
+          </View>
+        ))}
         <View style={styles.divider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.category}>Total</Text>
-          <Text style={styles.totalAmount}>R$ 172,60</Text>
+          <Text style={styles.category}>Total:</Text>
+          <Text style={styles.totalAmount}>
+            R$
+            {gastos
+              .reduce((total, gasto) => total + gasto.valor, 0)
+              .toFixed(2)}
+          </Text>
         </View>
       </View>
 
@@ -97,8 +129,12 @@ export default function DashboardScreen() {
                 onValueChange={(itemValue) => setSelectedCategory(itemValue)}
               >
                 <Picker.Item label="Selecione uma categoria" value="" />
-                {categories.map((category, index) => (
-                  <Picker.Item key={index} label={category} value={category} />
+                {gastos.map((gasto, index) => (
+                  <Picker.Item
+                    key={index}
+                    label={gasto.categoria}
+                    value={gasto.categoria}
+                  />
                 ))}
               </Picker>
             </View>
@@ -113,7 +149,7 @@ export default function DashboardScreen() {
             />
 
             {/* Input for Price */}
-            <Text style={styles.label}>Preço</Text>
+            <Text style={styles.label}>Valor</Text>
             <TextInput
               style={styles.input}
               placeholder="Ex: 25.90"
@@ -149,7 +185,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9f9f9",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "ios" ? 50 : 20, // Espaço inicial consistente no topo
+    paddingTop: Platform.OS === "ios" ? 50 : 20,
   },
   header: {
     width: "100%",
