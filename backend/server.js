@@ -17,30 +17,29 @@ app.listen(PORT, () => {
 
 // Array simulado para armazenar os gastos
 const gastos = [
-    { categoria: "Refeições", valor: 54.2 },
-    { categoria: "Lanches", valor: 14.41 },
-    { categoria: "Marina", valor: 103.99 },
-  ];
+  { categoria: "Refeições", valor: 54.2, compra: "Almoço" },
+  { categoria: "Lanches", valor: 14.41, compra: "Café" },
+  { categoria: "Marina", valor: 103.99, compra: "Flores" },
+];
   
   // Rota GET para obter os gastos
   app.get("/gastos", (req, res) => {
     res.json(gastos);
   });
   
-  // Rota POST para adicionar um novo gasto (categoria e valor)
-  app.post("/gastos", (req, res) => {
-    const { categoria, valor } = req.body;
-  
-    // Validação simples
-    if (!categoria || !valor) {
-      return res.status(400).json({ error: "Categoria e valor são obrigatórios" });
-    }
-  
-    // Adiciona o novo gasto no array
-    const novoGasto = { categoria, valor };
-    gastos.push(novoGasto);
-  
-    // Retorna o novo gasto adicionado
-    res.status(201).json(novoGasto);
-  });
-  
+// Rota POST para adicionar um novo gasto
+app.post("/gastos", (req, res) => {
+  const { categoria, valor, compra } = req.body;
+
+  // Validação para garantir que os três campos estão presentes
+  if (!categoria || !valor || !compra) {
+    return res.status(400).json({ error: "Categoria, valor e compra são obrigatórios" });
+  }
+
+  // Adiciona o novo gasto no array
+  const novoGasto = { categoria, valor, compra };
+  gastos.push(novoGasto);
+
+  // Retorna o novo gasto adicionado
+  res.status(201).json(novoGasto);
+});  

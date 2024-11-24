@@ -16,14 +16,14 @@ import axios from "axios"; // Importando Axios para requisições
 export default function DashboardScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [price, setPrice] = useState("");
+  const [itemName, setItemName] = useState(""); // Nome do gasto (compra)
+  const [price, setPrice] = useState(""); // Preço
   const [gastos, setGastos] = useState([]); // Estado para armazenar os dados do backend
 
   // Função para buscar os dados do backend
   const fetchGastos = async () => {
     try {
-      const response = await axios.get("http://192.168.1.27:3000/gastos");//adicionar a rota do ip do computador
+      const response = await axios.get("http://192.168.1.27:3000/gastos"); // Atualize com o IP correto
       setGastos(response.data);
     } catch (error) {
       console.error("Erro ao buscar os gastos:", error);
@@ -35,16 +35,32 @@ export default function DashboardScreen() {
     fetchGastos();
   }, []);
 
-  const handleAddExpense = () => {
-    console.log("Categoria:", selectedCategory);
-    console.log("Item:", itemName);
-    console.log("Preço:", price);
+  // Função para adicionar um novo gasto
+  const handleAddExpense = async () => {
+    if (!selectedCategory || !price || !itemName) {
+      alert("Por favor, preencha todos os campos.");
+      return;
+    }
 
-    // Limpa os campos após salvar
-    setSelectedCategory("");
-    setItemName("");
-    setPrice("");
-    setModalVisible(false);
+    try {
+      const response = await axios.post("http://192.168.1.27:3000/gastos", {
+        categoria: selectedCategory,
+        compra: itemName, // Inclui o campo compra
+        valor: parseFloat(price),
+      });
+
+      // Atualiza a lista de gastos após adicionar
+      setGastos((prevGastos) => [...prevGastos, response.data]);
+
+      // Limpa os campos e fecha o modal
+      setSelectedCategory("");
+      setItemName("");
+      setPrice("");
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Erro ao adicionar gasto:", error);
+      alert("Erro ao adicionar o gasto. Tente novamente.");
+    }
   };
 
   return (
@@ -57,8 +73,10 @@ export default function DashboardScreen() {
 
       {/* Balance */}
       <View style={styles.balanceContainer}>
-        <Text style={styles.balanceLabel}>Dinheiro</Text>
-        <Text style={styles.balanceAmount}>-R$ 172,60</Text>
+        <Text style={styles.balanceLabel}></Text>
+        <Text style={styles.balanceAmount}>
+          -R$ {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
+        </Text>
       </View>
 
       {/* Expense Summary */}
@@ -71,7 +89,7 @@ export default function DashboardScreen() {
         ))}
         <View style={styles.divider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.category}>Total</Text>
+          <Text style={styles.category}>Total:</Text>
           <Text style={styles.totalAmount}>
             R$
             {gastos
@@ -131,7 +149,7 @@ export default function DashboardScreen() {
             />
 
             {/* Input for Price */}
-            <Text style={styles.label}>Preço</Text>
+            <Text style={styles.label}>Valor</Text>
             <TextInput
               style={styles.input}
               placeholder="Ex: 25.90"
@@ -167,7 +185,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9f9f9",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "ios" ? 50 : 20, // Espaço inicial consistente no topo
+    paddingTop: Platform.OS === "ios" ? 50 : 20,
   },
   header: {
     width: "100%",
