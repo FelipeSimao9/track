@@ -266,8 +266,11 @@ const styles = StyleSheet.create({
   purchaseItem: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 5,
-    paddingLeft: 20, // Indentação para subitens
+    paddingLeft: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#rrr",
   },
   purchaseName: {
     fontSize: 16,
