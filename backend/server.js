@@ -5,41 +5,50 @@ const PORT = 3000;
 // Middleware para lidar com JSON
 app.use(express.json());
 
-// Rota de teste
-app.get("/", (req, res) => {
-  res.send("Backend funcionando!");
-});
-
-// Iniciar o servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
-});
-
 // Array simulado para armazenar os gastos
 const gastos = [
   { categoria: "Refeições", valor: 54.2, compra: "Almoço" },
   { categoria: "Lanches", valor: 14.41, compra: "Café" },
   { categoria: "Marina", valor: 103.99, compra: "Flores" },
 ];
-  
-  // Rota GET para obter os gastos
-  app.get("/gastos", (req, res) => {
-    res.json(gastos);
-  });
-  
-// Rota POST para adicionar um novo gasto
+
+// Rota GET para obter os gastos consolidados por categoria com compras associadas
+app.get("/gastos", (req, res) => {
+  // Cria um objeto consolidado para evitar duplicações de categorias
+  const gastosConsolidados = gastos.reduce((acc, gasto) => {
+    if (!acc[gasto.categoria]) {
+      acc[gasto.categoria] = { categoria: gasto.categoria, valor: 0, compras: [] };
+    }
+
+    // Atualiza o valor total da categoria
+    acc[gasto.categoria].valor += parseFloat(gasto.valor);
+
+    // Adiciona a compra como um objeto separado
+    acc[gasto.categoria].compras.push({ nome: gasto.compra, valor: parseFloat(gasto.valor) });
+
+    return acc;
+  }, {});
+
+  // Transforma o objeto consolidado em um array
+  const resultado = Object.values(gastosConsolidados);
+  res.json(resultado);
+});
+
+// Rota POST para adicionar ou atualizar uma categoria com compras
 app.post("/gastos", (req, res) => {
   const { categoria, valor, compra } = req.body;
 
-  // Validação para garantir que os três campos estão presentes
   if (!categoria || !valor || !compra) {
     return res.status(400).json({ error: "Categoria, valor e compra são obrigatórios" });
   }
 
-  // Adiciona o novo gasto no array
-  const novoGasto = { categoria, valor, compra };
-  gastos.push(novoGasto);
+  // Adiciona a nova compra diretamente ao array de gastos
+  gastos.push({ categoria, valor: parseFloat(valor), compra });
 
-  // Retorna o novo gasto adicionado
-  res.status(201).json(novoGasto);
-});  
+  res.status(201).json({ success: true });
+});
+
+// Iniciar o servidor
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
