@@ -23,7 +23,7 @@ export default function DashboardScreen() {
   // Função para buscar os dados do backend
   const fetchGastos = async () => {
     try {
-      const response = await axios.get("http://192.168.1.27:3000/gastos"); // Atualize com o IP correto
+      const response = await axios.get("http://192.168.0.6:3000/gastos"); // Atualize com o IP correto
       setGastos(response.data);
     } catch (error) {
       console.error("Erro ao buscar os gastos:", error);
@@ -43,7 +43,7 @@ export default function DashboardScreen() {
     }
 
     try {
-      const response = await axios.post("http://192.168.1.27:3000/gastos", {
+      const response = await axios.post("http://192.168.0.6:3000/gastos", {
         categoria: selectedCategory,
         compra: itemName, // Inclui o campo compra
         valor: parseFloat(price),
