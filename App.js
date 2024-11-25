@@ -8,6 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
@@ -19,6 +20,7 @@ export default function DashboardScreen() {
   const [itemName, setItemName] = useState(""); // Nome do gasto (compra)
   const [price, setPrice] = useState(""); // Preço
   const [gastos, setGastos] = useState([]); // Estado para armazenar os dados do backend
+  const [expandedCategories, setExpandedCategories] = useState([]); // Controle de categorias expandidas
 
   // Função para buscar os dados do backend
   const fetchGastos = async () => {
@@ -35,6 +37,14 @@ export default function DashboardScreen() {
     fetchGastos();
   }, []);
 
+    // Função para alternar a expansão da categoria
+    const toggleCategory = (categoria) => {
+      setExpandedCategories((prev) =>
+        prev.includes(categoria)
+          ? prev.filter((cat) => cat !== categoria) // Remove se já está expandida
+          : [...prev, categoria] // Adiciona se não está expandida
+      );
+    };
   // Função para adicionar um novo gasto
   const handleAddExpense = async () => {
     if (!selectedCategory || !price || !itemName) {
@@ -90,9 +100,26 @@ export default function DashboardScreen() {
       {/* Expense Summary */}
       <View style={styles.summaryCard}>
         {gastos.map((gasto, index) => (
-          <View key={index} style={styles.summaryItem}>
-            <Text style={styles.category}>{gasto.categoria}:</Text>
-            <Text style={styles.amount}>R$ {gasto.valor.toFixed(2)}</Text>
+          <View key={index}>
+            {/* Categoria Principal */}
+            <TouchableOpacity
+              style={styles.summaryItem}
+              onPress={() => toggleCategory(gasto.categoria)}
+            >
+              <Text style={styles.category}>{gasto.categoria}:</Text>
+              <Text style={styles.amount}>R$ {gasto.valor.toFixed(2)}</Text>
+            </TouchableOpacity>
+
+            {/* Compras (Somente se Categoria Estiver Expandida) */}
+            {expandedCategories.includes(gasto.categoria) &&
+              gasto.compras.map((compra, idx) => (
+                <View key={idx} style={styles.purchaseItem}>
+                  <Text style={styles.purchaseName}>{compra.nome}</Text>
+                  <Text style={styles.purchaseAmount}>
+                    R$ {compra.valor.toFixed(2)}
+                  </Text>
+                </View>
+              ))}
           </View>
         ))}
         <View style={styles.divider} />
@@ -228,6 +255,30 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     color: "#d32f2f",
+  },
+  categoryItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  purchaseItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 5,
+    paddingLeft: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#rrr",
+  },
+  purchaseName: {
+    fontSize: 16,
+    color: "#777",
+  },
+  purchaseAmount: {
+    fontSize: 16,
+    color: "#555",
   },
   summaryCard: {
     width: "100%",
