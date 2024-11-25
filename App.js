@@ -22,6 +22,9 @@ export default function DashboardScreen() {
   const [gastos, setGastos] = useState([]); // Estado para armazenar os dados do backend
   const [expandedCategories, setExpandedCategories] = useState([]); // Controle de categorias expandidas
 
+  //casa = 192.168.0.6
+  //inteli = 10.150.2.148
+
   // Função para buscar os dados do backend
   const fetchGastos = async () => {
     try {
@@ -37,38 +40,40 @@ export default function DashboardScreen() {
     fetchGastos();
   }, []);
 
-    // Função para alternar a expansão da categoria
-    const toggleCategory = (categoria) => {
-      setExpandedCategories((prev) =>
+  // Função para alternar a expansão da categoria
+  const toggleCategory = (categoria) => {
+    setExpandedCategories(
+      (prev) =>
         prev.includes(categoria)
           ? prev.filter((cat) => cat !== categoria) // Remove se já está expandida
           : [...prev, categoria] // Adiciona se não está expandida
-      );
-    };
+    );
+  };
   // Função para adicionar um novo gasto
   const handleAddExpense = async () => {
     if (!selectedCategory || !price || !itemName) {
       alert("Por favor, preencha todos os campos.");
       return;
     }
-  
+
     try {
       // Converte a vírgula para ponto e garante um número decimal
       const formattedPrice = parseFloat(price.replace(",", "."));
-  
+
       if (isNaN(formattedPrice)) {
         alert("Por favor, insira um valor válido.");
         return;
       }
-  
+      //casa = 192.168.0.6
+      //inteli = 10.150.2.148
       await axios.post("http://192.168.0.6:3000/gastos", {
         categoria: selectedCategory,
         valor: formattedPrice,
         compra: itemName,
       });
-  
+
       await fetchGastos();
-  
+
       // Limpa os campos e fecha o modal
       setSelectedCategory("");
       setItemName("");
