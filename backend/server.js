@@ -7,7 +7,7 @@ app.use(express.json());
 
 // Array simulado para armazenar os gastos
 const gastos = [
-  { categoria: "Refeições", valor: 54.2, compra: "Almoço" },
+  { categoria: "Refeições", valor: 54.20, compra: "Almoço" },
   { categoria: "Lanches", valor: 14.41, compra: "Café" },
   { categoria: "Marina", valor: 103.99, compra: "Flores" },
 ];
@@ -25,6 +25,7 @@ app.get("/gastos", (req, res) => {
 
     // Adiciona a compra como um objeto separado
     acc[gasto.categoria].compras.push({ nome: gasto.compra, valor: parseFloat(gasto.valor) });
+    console.log(`Categoria: ${gasto.categoria}, Valor acumulado: ${acc[gasto.categoria].valor}, Novo valor: ${parseFloat(gasto.valor)}`);
 
     return acc;
   }, {});
@@ -44,7 +45,7 @@ app.post("/gastos", (req, res) => {
 
   // Adiciona a nova compra diretamente ao array de gastos
   gastos.push({ categoria, valor: parseFloat(valor), compra });
-
+  console.log(req.body);
   res.status(201).json({ success: true });
 });
 
