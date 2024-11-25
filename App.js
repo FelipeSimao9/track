@@ -41,17 +41,24 @@ export default function DashboardScreen() {
       alert("Por favor, preencha todos os campos.");
       return;
     }
-
+  
     try {
+      // Converte a vírgula para ponto e garante um número decimal
+      const formattedPrice = parseFloat(price.replace(",", "."));
+  
+      if (isNaN(formattedPrice)) {
+        alert("Por favor, insira um valor válido.");
+        return;
+      }
+  
       await axios.post("http://192.168.0.6:3000/gastos", {
         categoria: selectedCategory,
-        valor: parseFloat(price),
+        valor: formattedPrice,
         compra: itemName,
       });
-
-      // Atualiza a lista de gastos após adicionar
-      await fetchGastos(); // Recarrega os dados diretamente do backend
-
+  
+      await fetchGastos();
+  
       // Limpa os campos e fecha o modal
       setSelectedCategory("");
       setItemName("");
@@ -153,9 +160,13 @@ export default function DashboardScreen() {
             <Text style={styles.label}>Valor</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ex: 25.90"
+              placeholder="Ex: 25,90"
               value={price}
-              onChangeText={(text) => setPrice(text)}
+              onChangeText={(text) => {
+                // Permite números, vírgula e ponto
+                const formattedText = text.replace(/[^0-9.,]/g, "");
+                setPrice(formattedText);
+              }}
               keyboardType="numeric"
             />
 
