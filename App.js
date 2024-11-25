@@ -23,8 +23,8 @@ export default function DashboardScreen() {
   // Função para buscar os dados do backend
   const fetchGastos = async () => {
     try {
-      const response = await axios.get("http://192.168.0.6:3000/gastos"); // Atualize com o IP correto
-      setGastos(response.data);
+      const response = await axios.get("http://192.168.0.6:3000/gastos");
+      setGastos(response.data); // Armazena as categorias, valores e compras
     } catch (error) {
       console.error("Erro ao buscar os gastos:", error);
     }
@@ -43,14 +43,14 @@ export default function DashboardScreen() {
     }
 
     try {
-      const response = await axios.post("http://192.168.0.6:3000/gastos", {
+      await axios.post("http://192.168.0.6:3000/gastos", {
         categoria: selectedCategory,
-        compra: itemName, // Inclui o campo compra
         valor: parseFloat(price),
+        compra: itemName,
       });
 
       // Atualiza a lista de gastos após adicionar
-      setGastos((prevGastos) => [...prevGastos, response.data]);
+      await fetchGastos(); // Recarrega os dados diretamente do backend
 
       // Limpa os campos e fecha o modal
       setSelectedCategory("");
@@ -75,7 +75,8 @@ export default function DashboardScreen() {
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}></Text>
         <Text style={styles.balanceAmount}>
-          -R$ {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
+          -R${" "}
+          {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
         </Text>
       </View>
 
@@ -92,9 +93,7 @@ export default function DashboardScreen() {
           <Text style={styles.category}>Total:</Text>
           <Text style={styles.totalAmount}>
             R$
-            {gastos
-              .reduce((total, gasto) => total + gasto.valor, 0)
-              .toFixed(2)}
+            {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
           </Text>
         </View>
       </View>
@@ -129,13 +128,15 @@ export default function DashboardScreen() {
                 onValueChange={(itemValue) => setSelectedCategory(itemValue)}
               >
                 <Picker.Item label="Selecione uma categoria" value="" />
-                {gastos.map((gasto, index) => (
-                  <Picker.Item
-                    key={index}
-                    label={gasto.categoria}
-                    value={gasto.categoria}
-                  />
-                ))}
+                {[...new Set(gastos.map((gasto) => gasto.categoria))].map(
+                  (categoria, index) => (
+                    <Picker.Item
+                      key={index}
+                      label={categoria}
+                      value={categoria}
+                    />
+                  )
+                )}
               </Picker>
             </View>
 
