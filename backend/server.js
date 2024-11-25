@@ -43,11 +43,18 @@ app.post("/gastos", (req, res) => {
     return res.status(400).json({ error: "Categoria, valor e compra são obrigatórios" });
   }
 
-  // Adiciona a nova compra diretamente ao array de gastos
-  gastos.push({ categoria, valor: parseFloat(valor), compra });
-  console.log(req.body);
+  // Converte o valor para número decimal
+  const valorFormatado = parseFloat(valor);
+
+  if (isNaN(valorFormatado)) {
+    return res.status(400).json({ error: "O valor deve ser um número válido" });
+  }
+
+  gastos.push({ categoria, valor: valorFormatado, compra });
+
   res.status(201).json({ success: true });
 });
+
 
 // Iniciar o servidor
 app.listen(PORT, () => {
