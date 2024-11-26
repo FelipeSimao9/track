@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   FlatList,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Picker } from "@react-native-picker/picker";
@@ -21,14 +22,22 @@ export default function DashboardScreen() {
   const [price, setPrice] = useState(""); // Preço
   const [gastos, setGastos] = useState([]); // Estado para armazenar os dados do backend
   const [expandedCategories, setExpandedCategories] = useState([]); // Controle de categorias expandidas
+  const [selectedPeriod, setSelectedPeriod] = useState("hoje");
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  //casa = 192.168.0.6
-  //inteli = 10.150.2.148
+  const periods = [
+    { label: "Hoje", value: "hoje" },
+    { label: "Últimos 7 Dias", value: "semana" },
+    { label: "Último Mês", value: "mes" },
+    { label: "Total", value: "all" },
+  ];
 
   // Função para buscar os dados do backend
-  const fetchGastos = async () => {
+  const fetchGastos = async (periodo) => {
     try {
-      const response = await axios.get("http://192.168.0.6:3000/gastos");
+      const response = await axios.get(
+        `http://192.168.0.6:3000/gastosPorData?periodo=${periodo}`
+      );
       setGastos(response.data); // Armazena as categorias, valores e compras
     } catch (error) {
       console.error("Erro ao buscar os gastos:", error);
@@ -37,8 +46,8 @@ export default function DashboardScreen() {
 
   // Buscar os dados assim que o componente for montado
   useEffect(() => {
-    fetchGastos();
-  }, []);
+    fetchGastos(selectedPeriod);
+  }, [selectedPeriod]);
 
   // Função para alternar a expansão da categoria
   const toggleCategory = (categoria) => {
@@ -49,6 +58,12 @@ export default function DashboardScreen() {
           : [...prev, categoria] // Adiciona se não está expandida
     );
   };
+
+  const handleSelectPeriod = (value) => {
+    setSelectedPeriod(value);
+    setDropdownVisible(false); // Fecha o dropdown
+  };
+
   // Função para adicionar um novo gasto
   const handleAddExpense = async () => {
     if (!selectedCategory || !price || !itemName) {
@@ -72,7 +87,7 @@ export default function DashboardScreen() {
         compra: itemName,
       });
 
-      await fetchGastos();
+      await fetchGastos(selectedPeriod);
 
       // Limpa os campos e fecha o modal
       setSelectedCategory("");
@@ -86,16 +101,48 @@ export default function DashboardScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Dashboard</Text>
-        <Text style={styles.subtitle}>Hoje ▾</Text>
+        {/* Dropdown Trigger */}
+        <TouchableOpacity
+          style={styles.dropdownTrigger}
+          onPress={() => setDropdownVisible(true)}
+        >
+          <Text style={styles.dropdownText}>
+            {periods.find((p) => p.value === selectedPeriod)?.label}
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Dropdown Modal */}
+      <Modal
+        visible={dropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.dropdownContainer}>
+            <FlatList
+              data={periods}
+              keyExtractor={(item) => item.value}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={() => handleSelectPeriod(item.value)}
+                >
+                  <Text style={styles.dropdownItemText}>{item.label}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {/* Balance */}
       <View style={styles.balanceContainer}>
-        <Text style={styles.balanceLabel}></Text>
         <Text style={styles.balanceAmount}>
           -R${" "}
           {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
@@ -103,39 +150,46 @@ export default function DashboardScreen() {
       </View>
 
       {/* Expense Summary */}
-      <View style={styles.summaryCard}>
-        {gastos.map((gasto, index) => (
-          <View key={index}>
-            {/* Categoria Principal */}
-            <TouchableOpacity
-              style={styles.summaryItem}
-              onPress={() => toggleCategory(gasto.categoria)}
-            >
-              <Text style={styles.category}>{gasto.categoria}:</Text>
-              <Text style={styles.amount}>R$ {gasto.valor.toFixed(2)}</Text>
-            </TouchableOpacity>
+      <ScrollView
+        style={styles.summaryScroll}
+        contentContainerStyle={styles.summaryContent}
+      >
+        <View style={styles.summaryCard}>
+          {gastos.map((gasto, index) => (
+            <View key={index}>
+              {/* Categoria Principal */}
+              <TouchableOpacity
+                style={styles.summaryItem}
+                onPress={() => toggleCategory(gasto.categoria)}
+              >
+                <Text style={styles.category}>{gasto.categoria}:</Text>
+                <Text style={styles.amount}>R$ {gasto.valor.toFixed(2)}</Text>
+              </TouchableOpacity>
 
-            {/* Compras (Somente se Categoria Estiver Expandida) */}
-            {expandedCategories.includes(gasto.categoria) &&
-              gasto.compras.map((compra, idx) => (
-                <View key={idx} style={styles.purchaseItem}>
-                  <Text style={styles.purchaseName}>{compra.nome}</Text>
-                  <Text style={styles.purchaseAmount}>
-                    R$ {compra.valor.toFixed(2)}
-                  </Text>
-                </View>
-              ))}
+              {/* Compras (Somente se Categoria Estiver Expandida) */}
+              {expandedCategories.includes(gasto.categoria) &&
+                gasto.compras.map((compra, idx) => (
+                  <View key={idx} style={styles.purchaseItem}>
+                    <Text style={styles.purchaseName}>{compra.nome}</Text>
+                    <Text style={styles.purchaseAmount}>
+                      R$ {compra.valor.toFixed(2)}
+                    </Text>
+                  </View>
+                ))}
+            </View>
+          ))}
+          <View style={styles.divider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.category}>Total:</Text>
+            <Text style={styles.totalAmount}>
+              R$
+              {gastos
+                .reduce((total, gasto) => total + gasto.valor, 0)
+                .toFixed(2)}
+            </Text>
           </View>
-        ))}
-        <View style={styles.divider} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.category}>Total:</Text>
-          <Text style={styles.totalAmount}>
-            R$
-            {gastos.reduce((total, gasto) => total + gasto.valor, 0).toFixed(2)}
-          </Text>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Add Button */}
       <TouchableOpacity
@@ -220,7 +274,7 @@ export default function DashboardScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -229,10 +283,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9f9f9",
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === "ios" ? 50 : 20,
+    paddingTop: 100, // Adiciona espaçamento no topo
   },
   header: {
-    width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -241,6 +294,46 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: "bold",
+    color: "#333",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+  },
+  dropdownTrigger: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#fff",
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  dropdownContainer: {
+    width: 150, // Ajuste para deixar menor
+    marginTop: 50, // Espaço para ficar abaixo do "hoje"
+    marginRight: 20, // Alinhado à direita
+    backgroundColor: "rgba(255, 255, 255, 0.9)", // Fundo com transparência
+    borderRadius: 10,
+    paddingVertical: 5, // Menor altura interna
+    paddingHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  dropdownItem: {
+    paddingVertical: 8, // Menor altura para os itens
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0", // Linha mais sutil
+  },
+  dropdownItemText: {
+    fontSize: 16,
     color: "#333",
   },
   subtitle: {
@@ -372,6 +465,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
   },
+  summaryScroll: {
+    maxHeight: 400, // Altura máxima ajustável para o ScrollView
+    width: "100%", // Certifica que o scroll ocupa a largura total
+  },
+  summaryContent: {
+    paddingBottom: 20, // Espaço interno para evitar cortes no conteúdo final
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -401,5 +501,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     fontSize: 16,
+  },
+  picker: {
+    height: 40,
+    width: 150,
+    color: "#333",
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
   },
 });

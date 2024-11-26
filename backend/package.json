@@ -12,6 +12,7 @@
   "dependencies": {
     "express": "^4.21.1",
     "moment-timezone": "^0.5.46",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "react-native-modal-dropdown": "^1.0.2"
   }
 }
