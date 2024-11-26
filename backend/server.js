@@ -18,28 +18,6 @@ const PORT = 3000;
 // Middleware para lidar com JSON
 app.use(express.json());
 
-// Array simulado para armazenar os gastos
-const gastos = [
-  {
-    categoria: "Refeições",
-    valor: 54.2,
-    compra: "Almoço",
-    data: moment().tz("America/Sao_Paulo").format(), // Data ajustada para o fuso horário de São Paulo
-  },
-  {
-    categoria: "Lanches",
-    valor: 14.41,
-    compra: "Café",
-    data: moment().tz("America/Sao_Paulo").format(), // Data ajustada para o fuso horário de São Paulo
-  },
-  {
-    categoria: "Marina",
-    valor: 103.99,
-    compra: "Flores",
-    data: moment().tz("America/Sao_Paulo").format(), // Data ajustada para o fuso horário de São Paulo
-  },
-];
-
 // Rota GET para obter os gastos consolidados por categoria com compras associadas
 app.get("/gastos", async (req, res) => {
   try {
@@ -108,6 +86,50 @@ app.post("/gastos", async (req, res) => {
     res.status(500).json({ error: "Erro ao adicionar gasto." });
   }
 });
+
+app.get("/gastosPorData", async (req, res) => {
+  const { periodo } = req.query; // Captura o parâmetro "periodo"
+
+  try {
+    let query = `
+      SELECT categoria, SUM(valor) AS valor_total, 
+      json_agg(json_build_object('nome', compra, 'valor', valor, 'data', data)) AS compras
+      FROM gastos
+    `;
+    const values = [];
+
+    // Condições baseadas no período
+    if (periodo === "hoje") {
+      query += ` WHERE DATE(data AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE`;
+    } else if (periodo === "semana") {
+      query += ` WHERE DATE(data) >= CURRENT_DATE - INTERVAL '7 days'`;
+    } else if (periodo === "mes") {
+      query += ` WHERE DATE_PART('month', data) = DATE_PART('month', CURRENT_DATE)
+                 AND DATE_PART('year', data) = DATE_PART('year', CURRENT_DATE)`;
+    }
+
+    // Agrupamento por categoria
+    query += ` GROUP BY categoria`;
+
+    const result = await pool.query(query, values);
+
+    const gastosFiltrados = result.rows.map((row) => ({
+      categoria: row.categoria,
+      valor: parseFloat(row.valor_total),
+      compras: row.compras.map((compra) => ({
+        nome: compra.nome,
+        valor: parseFloat(compra.valor),
+        data: compra.data,
+      })),
+    }));
+
+    res.json(gastosFiltrados);
+  } catch (error) {
+    console.error("Erro ao buscar gastos por data:", error);
+    res.status(500).json({ error: "Erro ao buscar gastos por data." });
+  }
+});
+
 // Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
