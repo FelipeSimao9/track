@@ -18,28 +18,6 @@ const PORT = 3000;
 // Middleware para lidar com JSON
 app.use(express.json());
 
-// Array simulado para armazenar os gastos
-const gastos = [
-  {
-    categoria: "Refeições",
-    valor: 54.2,
-    compra: "Almoço",
-    data: moment().tz("America/Sao_Paulo").format(), // Data ajustada para o fuso horário de São Paulo
-  },
-  {
-    categoria: "Lanches",
-    valor: 14.41,
-    compra: "Café",
-    data: moment().tz("America/Sao_Paulo").format(), // Data ajustada para o fuso horário de São Paulo
-  },
-  {
-    categoria: "Marina",
-    valor: 103.99,
-    compra: "Flores",
-    data: moment().tz("America/Sao_Paulo").format(), // Data ajustada para o fuso horário de São Paulo
-  },
-];
-
 // Rota GET para obter os gastos consolidados por categoria com compras associadas
 app.get("/gastos", async (req, res) => {
   try {
