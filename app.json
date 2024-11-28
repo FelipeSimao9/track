@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "track",
-    "slug": "track",
+    "name": "Track",
+    "slug": "Track",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.felipesimao10.Track"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,8 +28,16 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
-
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/3d255d0f-f5fa-40d8-9328-d1120fccb876"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3d255d0f-f5fa-40d8-9328-d1120fccb876"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
-}
 }
