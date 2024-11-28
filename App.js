@@ -36,7 +36,7 @@ export default function DashboardScreen() {
   const fetchGastos = async (periodo) => {
     try {
       const response = await axios.get(
-        `http://192.168.0.6:3000/gastosPorData?periodo=${periodo}`
+        `http://192.168.0.8:3000/gastosPorData?periodo=${periodo}`
       );
       setGastos(response.data); // Armazena as categorias, valores e compras
     } catch (error) {
@@ -79,9 +79,7 @@ export default function DashboardScreen() {
         alert("Por favor, insira um valor válido.");
         return;
       }
-      //casa = 192.168.0.6
-      //inteli = 10.150.2.148
-      await axios.post("http://192.168.0.6:3000/gastos", {
+      await axios.post("http://192.168.0.8:3000/gastos", {
         categoria: selectedCategory,
         valor: formattedPrice,
         compra: itemName,
