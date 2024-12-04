@@ -36,7 +36,7 @@ export default function DashboardScreen() {
   const fetchGastos = async (periodo) => {
     try {
       const response = await axios.get(
-        `http://192.168.0.8:3000/gastosPorData?periodo=${periodo}`
+        `https://track-1kvk.onrender.com/gastosPorData?periodo=${periodo}`
       );
       setGastos(response.data); // Armazena as categorias, valores e compras
     } catch (error) {
@@ -79,7 +79,7 @@ export default function DashboardScreen() {
         alert("Por favor, insira um valor válido.");
         return;
       }
-      await axios.post("http://192.168.0.8:3000/gastos", {
+      await axios.post("https://track-1kvk.onrender.com/gastos", {
         categoria: selectedCategory,
         valor: formattedPrice,
         compra: itemName,
