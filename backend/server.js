@@ -4,7 +4,6 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
-
 (async () => {
   try {
     const client = await pool.connect();
@@ -22,10 +21,18 @@ app.use(express.json());
 app.get("/gastos", async (req, res) => {
   try {
     const query = `
-      SELECT categoria, SUM(valor) AS valor_total, 
-      json_agg(json_build_object('nome', compra, 'valor', valor, 'data', data)) AS compras
-      FROM gastos
-      GROUP BY categoria;
+SELECT 
+    categoria, 
+    SUM(valor) AS valor_total, 
+    json_agg(
+        json_build_object(
+            'nome', compra, 
+            'valor', valor, 
+            'data', data
+        )
+    ) AS compras
+FROM auth.gastos
+GROUP BY categoria;
     `;
 
     const result = await pool.query(query);
@@ -47,7 +54,6 @@ app.get("/gastos", async (req, res) => {
     res.status(500).json({ error: "Erro ao buscar gastos." });
   }
 });
-
 
 // Rota POST para adicionar ou atualizar uma categoria com compras
 app.post("/gastos", async (req, res) => {
@@ -92,9 +98,11 @@ app.get("/gastosPorData", async (req, res) => {
 
   try {
     let query = `
-      SELECT categoria, SUM(valor) AS valor_total, 
-      json_agg(json_build_object('nome', compra, 'valor', valor, 'data', data)) AS compras
-      FROM gastos
+SELECT categoria, 
+       SUM(valor) AS valor_total,  
+       json_agg(json_build_object('nome', compra, 'valor', valor, 'data', data)) AS compras
+FROM auth.gastos
+GROUP BY categoria;
     `;
     const values = [];
 
